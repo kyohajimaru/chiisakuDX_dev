@@ -1,197 +1,199 @@
-const categories = [
-  {
-    id: 'homepage',
-    label: 'ホームページ',
-    priority: 'まずはホームページの第一印象と予約ボタンを見直しましょう。',
-    questions: [
-      ['heroClear', 'ファーストビューで何のお店かすぐわかる', 'ファーストビュー内に「何のお店か」「誰向けか」「予約ボタン」を置く'],
-      ['serviceClear', 'サービス内容や料金がわかりやすい', 'メニューや料金を見つけやすい場所にまとめる'],
-      ['contactButton', '予約・問い合わせボタンが見つけやすい', '予約ボタンをファーストビュー内に置く'],
-      ['mobileReadable', 'スマホで見ても読みやすい', 'スマホで文字サイズ、余白、ボタンの押しやすさを確認する'],
-      ['shopMood', 'お店の雰囲気や強みが伝わる', '写真や短い文章で、お店の雰囲気と選ばれる理由を伝える']
-    ]
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram',
-    priority: 'まずはInstagramプロフィールと投稿内容の見え方を見直しましょう。',
-    questions: [
-      ['profileTarget', 'プロフィール文で誰向けのアカウントかわかる', 'Instagramプロフィールに「誰向けか」を入れる'],
-      ['postConsistency', '投稿内容に統一感がある', '投稿のテーマ、色味、見出しの型をそろえる'],
-      ['instaRoute', '予約や問い合わせへの導線がある', 'プロフィールからLINEや予約ページへ進めるリンクを整える'],
-      ['instaMood', 'お店の強みや雰囲気が伝わる', 'お店の強みや雰囲気が伝わる投稿を増やす'],
-      ['nextAction', '投稿から次の行動につながりやすい', '投稿の最後に予約、保存、相談など次の行動を添える']
-    ]
-  },
-  {
-    id: 'booking',
-    label: '予約導線',
-    priority: 'まずは予約・問い合わせまでの導線を見直しましょう。',
-    questions: [
-      ['bookingMethod', '予約方法がすぐわかる', '予約方法をページ上部やプロフィールからすぐ見える場所に置く'],
-      ['bookingLink', 'LINE・予約サイト・問い合わせフォームへのリンクがわかりやすい', 'LINEや予約ページへのリンクをわかりやすくする'],
-      ['fewSteps', '複数のページを移動しなくても予約に進める', '予約までのクリック数を減らす'],
-      ['infoEasy', '営業時間・場所・メニューなど必要情報が見つけやすい', '営業時間、場所、メニューをひとつの案内にまとめる'],
-      ['firstVisit', '初めての人でも不安なく問い合わせできる', '初めてのお客さま向けの案内を追加する']
-    ]
-  }
-];
-
-const answerOptions = [
-  { label: 'できている', value: 2 },
-  { label: '少し不安', value: 1 },
-  { label: 'できていない / わからない', value: 0 }
-];
-
-const quickActions = [
-  '予約ボタンやリンクをスマホの最初の画面で見える位置に置く',
-  'お店の名前、業種、対象のお客さまを短い文章で書く',
-  'メニュー、料金、営業時間、場所を見つけやすくまとめる',
-  'Instagramプロフィールに予約先と対象のお客さまを入れる',
-  '初めての方へ向けた来店前の案内を追加する'
-];
-
-const storageKey = 'chiisakudx-web-check-report';
+const storageKey = 'chiisakudx-auto-web-check-report';
 const form = document.querySelector('#diagnosis-form');
-const questionGroups = document.querySelector('#question-groups');
 const resultSection = document.querySelector('#result-section');
+const loadingCard = document.querySelector('#loading-card');
+const formError = document.querySelector('#form-error');
 
-const createQuestionGroups = () => {
-  if (!questionGroups) return;
-  questionGroups.innerHTML = categories.map((category) => `
-    <fieldset class="question-group">
-      <legend class="question-heading">${category.label}</legend>
-      <div class="question-list">
-        ${category.questions.map(([id, label]) => `
-          <div class="question-item">
-            <p class="question-title">${label}</p>
-            <div class="answer-options">
-              ${answerOptions.map((option) => `
-                <label>
-                  <input type="radio" name="${id}" value="${option.value}" required>
-                  <span>${option.label}</span>
-                </label>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </fieldset>
+const statusLabels = {
+  ok: 'OK',
+  caution: '要確認',
+  improve: '要改善',
+  unavailable: '取得できませんでした'
+};
+
+const getFormData = () => ({
+  url: form?.elements.homepageUrl.value.trim() || '',
+  shopName: form?.elements.shopName.value.trim() || '',
+  industry: form?.elements.industry.value.trim() || ''
+});
+
+const normalizeUrl = (value) => {
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+};
+
+const showError = (message) => {
+  if (!formError) return;
+  formError.textContent = message;
+  formError.hidden = false;
+};
+
+const clearError = () => {
+  if (!formError) return;
+  formError.textContent = '';
+  formError.hidden = true;
+};
+
+const setLoading = (isLoading) => {
+  loadingCard.hidden = !isLoading;
+  form?.querySelectorAll('button, input').forEach((element) => {
+    element.disabled = isLoading;
+  });
+};
+
+const getStatusMessage = (score) => {
+  if (score >= 80) return '基本のWeb設定はかなり整っています。さらに伝わり方や予約したくなる見せ方を整えると、より良くなります。';
+  if (score >= 60) return '基本は整いつつありますが、いくつか見直すともっと伝わりやすくなります。';
+  if (score >= 40) return '基本設定や導線に見直しポイントがあります。まずは予約・問い合わせまでの流れを整えましょう。';
+  return 'Webまわりを整理するだけで、印象が大きく変わる可能性があります。基本設定から見直すのがおすすめです。';
+};
+
+const escapeHtml = (value = '') => value
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#039;');
+
+const renderList = (selector, items, emptyText) => {
+  const list = document.querySelector(selector);
+  if (!list) return;
+  const values = items.length ? items : [emptyText];
+  list.innerHTML = values.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+};
+
+const renderScoreCards = (checks) => {
+  const container = document.querySelector('#category-results');
+  if (!container) return;
+  container.innerHTML = checks.map((check) => `
+    <article class="category-card status-${check.status}">
+      <p><span>${escapeHtml(check.label)}</span><b>${check.score === null ? '-' : check.score}</b></p>
+      <div class="status-row"><em>${statusLabels[check.status]}</em><small>${escapeHtml(check.summary)}</small></div>
+      <div class="meter" aria-hidden="true"><i style="width:${check.score || 0}%"></i></div>
+    </article>
   `).join('');
 };
 
-const getFormData = () => {
-  const data = {};
-  new FormData(form).forEach((value, key) => {
-    data[key] = value;
-  });
-  return data;
+const renderDetails = (checks) => {
+  const container = document.querySelector('#check-detail-list');
+  if (!container) return;
+  container.innerHTML = checks.map((check) => `
+    <article class="check-detail status-${check.status}">
+      <div>
+        <h3>${escapeHtml(check.label)}</h3>
+        <span>${statusLabels[check.status]}</span>
+      </div>
+      <p>${escapeHtml(check.summary)}</p>
+      ${check.details?.length ? `<ul>${check.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}</ul>` : ''}
+    </article>
+  `).join('');
 };
 
-const saveState = (data, result = null) => {
-  localStorage.setItem(storageKey, JSON.stringify({ data, result }));
+const renderResult = (payload) => {
+  const { input, result } = payload;
+  const shopName = input.shopName || '診断サイト';
+  const score = result.overallScore;
+
+  document.querySelector('#result-shop-name').textContent = shopName;
+  document.querySelector('#result-url').textContent = result.finalUrl || input.url;
+  document.querySelector('#overall-score').textContent = score;
+  document.querySelector('.result-score').style.setProperty('--score-angle', `${score * 3.6}deg`);
+  document.querySelector('#status-message').textContent = getStatusMessage(score);
+
+  renderScoreCards(result.checks);
+  renderDetails(result.checks);
+  renderList('#improvement-list', result.improvements, '大きな改善候補は見つかりませんでした。伝わり方や予約したくなる見せ方は有料レポートで詳しく確認できます。');
+  renderList('#ok-list', result.summary.ok, '今回はOK項目が見つかりませんでした。');
+  renderList('#caution-list', result.summary.caution, '要確認項目はありません。');
+  renderList('#improve-list', result.summary.improve, '要改善項目はありません。');
+
+  resultSection.hidden = false;
+};
+
+const saveState = (input, result) => {
+  localStorage.setItem(storageKey, JSON.stringify({ input, result }));
 };
 
 const restoreState = () => {
   const saved = localStorage.getItem(storageKey);
   if (!saved || !form) return;
   try {
-    const { data, result } = JSON.parse(saved);
-    Object.entries(data || {}).forEach(([key, value]) => {
-      const field = form.elements[key];
-      if (!field) return;
-      if (field instanceof RadioNodeList) {
-        field.value = value;
-      } else {
-        field.value = value;
-      }
-    });
-    if (result) renderResult(result, data);
+    const payload = JSON.parse(saved);
+    form.elements.homepageUrl.value = payload.input?.url || '';
+    form.elements.shopName.value = payload.input?.shopName || '';
+    form.elements.industry.value = payload.input?.industry || '';
+    if (payload.result) renderResult(payload);
   } catch {
     localStorage.removeItem(storageKey);
   }
 };
 
-const calculateResult = (data) => {
-  const categoryResults = categories.map((category) => {
-    const score = category.questions.reduce((sum, [id]) => sum + Number(data[id] || 0), 0);
-    const max = category.questions.length * 2;
-    return { id: category.id, label: category.label, score, max, percent: Math.round((score / max) * 100), priority: category.priority };
-  });
-
-  const totalScore = categoryResults.reduce((sum, category) => sum + category.score, 0);
-  const totalMax = categoryResults.reduce((sum, category) => sum + category.max, 0);
-  const overall = Math.round((totalScore / totalMax) * 100);
-  const weakest = [...categoryResults].sort((a, b) => a.percent - b.percent)[0];
-  const lowAnswers = categories.flatMap((category) => (
-    category.questions
-      .filter(([id]) => Number(data[id]) < 2)
-      .map(([id, label, improvement]) => ({ id, label, improvement, value: Number(data[id] || 0) }))
-  )).sort((a, b) => a.value - b.value);
-
-  return {
-    overall,
-    categories: categoryResults,
-    priority: weakest.priority,
-    improvements: [...new Set(lowAnswers.map((item) => item.improvement))].slice(0, 5)
-  };
+const runDiagnosis = async (input) => {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 45000);
+  try {
+    const response = await fetch('/api/check-site', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+      signal: controller.signal
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(payload?.message || 'サイト情報を取得できませんでした。URLが正しいか、もう一度確認してください。');
+    }
+    return payload;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('診断に時間がかかっています。少し時間をおいて、もう一度お試しください。');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 };
 
-const getStatusMessage = (score) => {
-  if (score >= 80) return 'かなり整っています。さらに伝わりやすくする余地があります。';
-  if (score >= 60) return 'あと少しで、もっと伝わる状態です。優先順位を決めて見直しましょう。';
-  if (score >= 40) return '伝えたいことが少し届きにくい状態です。まずは導線と見せ方を整えましょう。';
-  return 'Webまわりを整理するだけで、印象が大きく変わる可能性があります。';
-};
-
-const renderList = (selector, items) => {
-  const list = document.querySelector(selector);
-  if (!list) return;
-  list.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
-};
-
-const renderResult = (result, data) => {
-  const shopName = data.shopName?.trim() || 'お店';
-  document.querySelector('#result-shop-name').textContent = shopName;
-  document.querySelector('#overall-score').textContent = result.overall;
-  document.querySelector('.result-score').style.setProperty('--score-angle', `${result.overall * 3.6}deg`);
-  document.querySelector('#status-message').textContent = getStatusMessage(result.overall);
-  document.querySelector('#priority-message').textContent = result.priority;
-
-  document.querySelector('#category-results').innerHTML = result.categories.map((category) => `
-    <article class="category-card">
-      <p><span>${category.label}</span><b>${category.percent}</b></p>
-      <div class="meter" aria-hidden="true"><i style="width:${category.percent}%"></i></div>
-    </article>
-  `).join('');
-
-  renderList('#improvement-list', result.improvements.length ? result.improvements : ['全体的に整っています。写真や文章を少し見直して、さらに伝わりやすくしましょう。']);
-  renderList('#quick-list', quickActions);
-  resultSection.hidden = false;
-};
-
-createQuestionGroups();
-restoreState();
-
-form?.addEventListener('input', () => {
-  saveState(getFormData());
-});
-
-form?.addEventListener('change', () => {
-  saveState(getFormData());
-});
-
-form?.addEventListener('submit', (event) => {
+form?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const data = getFormData();
-  const result = calculateResult(data);
-  saveState(data, result);
-  renderResult(result, data);
-  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  clearError();
+
+  const input = getFormData();
+  if (!input.url) {
+    showError('ホームページURLを入力してください。');
+    return;
+  }
+
+  const normalizedUrl = normalizeUrl(input.url);
+  if (!normalizedUrl) {
+    showError('URL形式が正しくありません。https:// から始まるURLを入力してください。');
+    return;
+  }
+
+  const requestInput = { ...input, url: normalizedUrl };
+  setLoading(true);
+  resultSection.hidden = true;
+
+  try {
+    const result = await runDiagnosis(requestInput);
+    const payload = { input: requestInput, result };
+    saveState(requestInput, result);
+    renderResult(payload);
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    showError(error.message || '診断中にエラーが発生しました。時間をおいてもう一度お試しください。');
+  } finally {
+    setLoading(false);
+  }
 });
 
 document.querySelector('#reset-tool')?.addEventListener('click', () => {
   form.reset();
+  clearError();
   resultSection.hidden = true;
   localStorage.removeItem(storageKey);
 });
@@ -199,3 +201,5 @@ document.querySelector('#reset-tool')?.addEventListener('click', () => {
 document.querySelector('#print-report')?.addEventListener('click', () => {
   window.print();
 });
+
+restoreState();

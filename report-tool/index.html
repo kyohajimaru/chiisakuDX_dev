@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ちいさくDXのWeb診断ツール。ホームページ、Instagram、予約導線の状態を入力式でかんたんにチェックできます。">
-  <title>ちいさくDX Web診断ツール｜小さなお店のWebまわりをかんたん診断</title>
+  <meta name="description" content="ちいさくDXの無料Web診断ツール。URLを入力するだけで、表示速度、SEO基本設定、画像alt、予約導線の有無などを自動チェックします。">
+  <title>無料Web診断ツール｜URLだけで基本項目を自動チェック｜ちいさくDX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,69 +37,69 @@
     <section class="tool-hero">
       <div class="container tool-hero-grid">
         <div class="tool-hero-copy">
-          <p class="eyebrow"><span></span>ちいさくDX Web診断ツール</p>
-          <h1>お店のWebまわりを、<br><strong>3分でかんたんチェック。</strong></h1>
-          <p>ホームページ、Instagram、予約導線の状態を入力式で整理します。結果は100点満点のスコアと、優先して見直すポイントとして表示されます。</p>
+          <p class="eyebrow"><span></span>無料Web診断ツール</p>
+          <h1>URLを入れるだけで、<br><strong>Webの基本項目を自動チェック。</strong></h1>
+          <p>表示速度、SEO基本設定、title、meta description、h1、画像alt、リンク切れ候補、予約・問い合わせ導線の有無を無料で確認できます。</p>
           <div class="button-row">
-            <a class="button button-primary" href="#tool-form">診断をはじめる<span aria-hidden="true">→</span></a>
-            <a class="button button-secondary" href="../#contact">相談する</a>
+            <a class="button button-primary" href="#tool-form">無料で診断する<span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="../#contact">詳しく相談する</a>
           </div>
         </div>
         <div class="tool-sample-card" aria-label="診断結果カードのイメージ">
           <div class="report-head"><span class="mini-logo">ちいさくDX</span><span class="report-label">WEB CHECK REPORT</span></div>
           <div class="tool-sample-score"><b>72</b><small>/ 100</small></div>
-          <p>あと少しで、もっと伝わる状態です。</p>
+          <p>基本は整いつつあります。</p>
           <div class="tool-sample-bars">
             <span><i style="width:78%"></i></span>
             <span><i style="width:62%"></i></span>
             <span><i style="width:55%"></i></span>
           </div>
-          <div class="priority"><span>優先して見直すこと</span><strong>予約・問い合わせまでの導線</strong></div>
+          <div class="priority"><span>自動チェック項目</span><strong>速度・SEO・予約導線の基本</strong></div>
         </div>
       </div>
     </section>
 
     <section class="section tool-section" id="tool-form">
       <div class="container tool-layout">
-        <form class="diagnosis-form" id="diagnosis-form">
+        <form class="diagnosis-form" id="diagnosis-form" novalidate>
           <div class="tool-panel">
-            <p class="section-kicker">STEP 01</p>
-            <h2>基本情報</h2>
-            <div class="form-grid">
-              <label>お店の名前<input type="text" name="shopName" autocomplete="organization" placeholder="例：ちいさな美容室"></label>
-              <label>業種<input type="text" name="industry" placeholder="例：美容室、整体、カフェ"></label>
-              <label>ホームページURL<input type="url" name="homepageUrl" inputmode="url" placeholder="https://example.com"></label>
-              <label>Instagram URL<input type="url" name="instagramUrl" inputmode="url" placeholder="https://www.instagram.com/"></label>
-              <label>LINEまたは予約ページURL<input type="url" name="bookingUrl" inputmode="url" placeholder="https://"></label>
-              <label>集客したいターゲット<input type="text" name="target" placeholder="例：近隣の30代女性、初めての方"></label>
-              <label class="full-field">今のお悩み<textarea name="concern" rows="4" placeholder="例：Instagramから予約につながらない、ホームページを見直したい"></textarea></label>
+            <p class="section-kicker">FREE CHECK</p>
+            <h2>ホームページURLを入力してください</h2>
+            <p class="tool-lead">診断できるのは、公開されている http / https のURLです。localhost や社内ネットワークのURLは診断できません。</p>
+            <div class="form-grid auto-form-grid">
+              <label class="full-field">ホームページURL <small>必須</small><input type="url" name="homepageUrl" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
+              <label>お店の名前 <small>任意</small><input type="text" name="shopName" autocomplete="organization" placeholder="例：ちいさな美容室"></label>
+              <label>業種 <small>任意</small><input type="text" name="industry" placeholder="例：美容室、整体、カフェ"></label>
+            </div>
+            <p class="form-error" id="form-error" role="alert" hidden></p>
+            <div class="tool-actions left-actions">
+              <button class="button button-primary" type="submit">無料で診断する<span aria-hidden="true">→</span></button>
+              <button class="button button-outline" type="button" id="reset-tool">入力をリセット</button>
             </div>
           </div>
 
-          <div class="tool-panel">
-            <p class="section-kicker">STEP 02</p>
-            <h2>チェック項目</h2>
-            <p class="tool-lead">各項目について、今の状態に近いものを選んでください。</p>
-            <div class="question-groups" id="question-groups"></div>
-          </div>
-
-          <div class="tool-actions">
-            <button class="button button-primary" type="submit">診断結果を見る<span aria-hidden="true">→</span></button>
-            <button class="button button-outline" type="button" id="reset-tool">入力をリセット</button>
+          <div class="loading-card" id="loading-card" hidden>
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <div>
+              <p class="section-kicker">CHECKING</p>
+              <h2>サイトを診断しています</h2>
+              <p>HTMLの基本項目とPageSpeedの取得を確認しています。通常10〜30秒ほどかかります。</p>
+            </div>
           </div>
         </form>
 
-        <aside class="tool-side-card" aria-label="診断内容">
+        <aside class="tool-side-card" aria-label="無料診断で確認する内容">
           <p class="section-kicker">CHECK</p>
-          <h2>診断すること</h2>
+          <h2>無料診断で見る項目</h2>
           <ul class="check-list">
-            <li>ホームページの第一印象</li>
-            <li>サービス内容や料金の伝わりやすさ</li>
-            <li>Instagramプロフィールと投稿の見え方</li>
-            <li>予約・問い合わせまでの導線</li>
-            <li>初めての方への案内のしやすさ</li>
+            <li>表示速度・モバイル表示の点数</li>
+            <li>SEO基本項目</li>
+            <li>title / description / h1</li>
+            <li>画像altの設定状況</li>
+            <li>リンク切れ候補</li>
+            <li>予約・問い合わせ導線の有無っぽい判定</li>
           </ul>
-          <p class="side-note">結果はこのブラウザに一時保存されます。ページを更新しても入力内容と診断結果を確認できます。</p>
+          <p class="side-note">この無料診断は、URLから自動で確認できる基本項目をチェックするツールです。デザインの印象、文章の伝わりやすさ、お店の強み、Instagram投稿の内容などは自動では正確に判断できないため、有料のWeb診断レポートで確認しています。</p>
         </aside>
       </div>
     </section>
@@ -110,7 +110,8 @@
           <div class="result-head">
             <div>
               <p class="section-kicker">WEB CHECK REPORT</p>
-              <h2><span id="result-shop-name">お店</span>の診断結果</h2>
+              <h2><span id="result-shop-name">診断サイト</span>の無料診断結果</h2>
+              <p class="target-url" id="result-url"></p>
             </div>
             <div class="result-score" aria-label="総合スコア"><b id="overall-score">0</b><small>/ 100</small></div>
           </div>
@@ -124,33 +125,41 @@
 
           <div class="result-grid">
             <section class="result-card priority-card">
-              <span>優先して見直すこと</span>
-              <h3 id="priority-message"></h3>
-            </section>
-            <section class="result-card">
               <span>改善ポイント</span>
               <ul class="result-list" id="improvement-list"></ul>
             </section>
             <section class="result-card">
-              <span>すぐできる改善リスト</span>
-              <ul class="result-list" id="quick-list"></ul>
+              <span>OK項目</span>
+              <ul class="result-list status-list ok-list" id="ok-list"></ul>
+            </section>
+            <section class="result-card">
+              <span>要確認項目</span>
+              <ul class="result-list status-list caution-list" id="caution-list"></ul>
+            </section>
+            <section class="result-card">
+              <span>要改善項目</span>
+              <ul class="result-list status-list improve-list" id="improve-list"></ul>
             </section>
           </div>
 
-          <section class="result-cta">
-            <p class="section-kicker">CONSULTATION</p>
-            <h2>もっと詳しく見直したい方へ</h2>
-            <p>診断結果をもとに、お店のWebまわりを一緒に整理できます。ホームページ・Instagram・予約導線のどこから直すべきか、必要な方には詳しい診断レポートやオンライン相談もご案内します。</p>
+          <section class="result-card detail-card">
+            <span>項目別チェック結果</span>
+            <div class="check-detail-list" id="check-detail-list"></div>
+          </section>
+
+          <section class="result-cta paid-report-cta">
+            <p class="section-kicker">PAID REPORT</p>
+            <h2>自動診断だけでは分からないところまで見直したい方へ</h2>
+            <p>無料診断では、表示速度やSEO基本設定、予約導線の有無など、URLから確認できる項目をチェックしています。お店の強みが伝わっているか、誰向けのお店か分かりやすいか、予約したくなる見せ方になっているかなどは、人の目で確認する有料のWeb診断レポートで詳しく整理できます。</p>
             <div class="button-row center-buttons">
-              <a class="button button-primary" href="../#contact">詳しい診断レポートを相談する</a>
-              <a class="button button-secondary" href="../#contact">オンライン相談を申し込む</a>
+              <a class="button button-primary" href="../#contact">詳しいWeb診断レポートを相談する</a>
             </div>
           </section>
         </article>
 
         <div class="result-actions">
           <button class="button button-primary" type="button" id="print-report">PDFとして保存</button>
-          <a class="button button-outline" href="#tool-form">回答を見直す</a>
+          <a class="button button-outline" href="#tool-form">別のURLを診断する</a>
         </div>
       </div>
     </section>

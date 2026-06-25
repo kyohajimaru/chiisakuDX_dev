@@ -1,6 +1,7 @@
 {
+  "type": "module",
   "scripts": {
-    "build": "node --check assets/js/main.js && node --check assets/js/report-tool.js && node scripts/validate-static.mjs"
+    "build": "node --check assets/js/main.js && node --check assets/js/report-tool.js && node --check functions/api/check-site.js && node scripts/validate-static.mjs"
   },
   "devDependencies": {}
 }
