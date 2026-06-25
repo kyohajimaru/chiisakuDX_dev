@@ -1,7 +1,8 @@
 const MAX_HTML_BYTES = 1_200_000;
 const MAX_LINK_CHECKS = 20;
 const FETCH_TIMEOUT_MS = 12000;
-const PAGESPEED_TIMEOUT_MS = 22000;
+const PAGESPEED_TIMEOUT_MS = 30000;
+const PAGESPEED_ERROR_MESSAGE = 'PageSpeedの取得に失敗しました。サイト自体の問題ではなく、一時的なAPIエラーやタイムアウトの可能性があります。';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -33,12 +34,15 @@ const isPrivateHostname = (hostname) => {
 const validateTargetUrl = (value) => {
   let url;
   try {
-    url = new URL(String(value || '').trim());
+    const rawValue = String(value || '').trim();
+    const withProtocol = /^https?:\/\//i.test(rawValue) ? rawValue : `https://${rawValue}`;
+    url = new URL(withProtocol);
   } catch {
     return { error: 'URL形式が正しくありません。https:// から始まるURLを入力してください。' };
   }
   if (!['http:', 'https:'].includes(url.protocol)) return { error: '診断できるのは http / https のURLのみです。' };
   if (isPrivateHostname(url.hostname)) return { error: 'localhost や private IP は診断対象外です。公開されているサイトURLを入力してください。' };
+  if (url.protocol === 'http:') url.protocol = 'https:';
   return { url };
 };
 
@@ -170,16 +174,57 @@ const checkContactRoute = (parsed, bodyText) => {
   return { status: 'improve', score: 0, summary: '予約・問い合わせ系の導線を確認できませんでした。', details: ['この判定は「有無っぽい判定」です。見た目や配置の良さまでは自動では判断できません。'] };
 };
 
-const fetchPageSpeed = async (url, env) => {
-  const apiUrl = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
-  apiUrl.searchParams.set('url', url);
+const sanitizePageSpeedUrl = (url) => {
+  const safeUrl = new URL(url);
+  if (safeUrl.searchParams.has('key')) safeUrl.searchParams.set('key', '[hidden]');
+  return safeUrl.href;
+};
+
+const getPageSpeedUrl = (url, env) => {
+  const normalizedUrl = new URL(url);
+  normalizedUrl.protocol = 'https:';
+
+  const apiUrl = new URL('https://pagespeedonline.googleapis.com/pagespeedonline/v5/runPagespeed');
+  apiUrl.searchParams.set('url', normalizedUrl.href);
   apiUrl.searchParams.set('strategy', 'mobile');
-  ['performance', 'accessibility', 'best-practices', 'seo'].forEach((category) => apiUrl.searchParams.append('category', category));
+  ['performance', 'seo', 'accessibility', 'best-practices'].forEach((category) => apiUrl.searchParams.append('category', category));
   if (env.PAGESPEED_API_KEY) apiUrl.searchParams.set('key', env.PAGESPEED_API_KEY);
+  return apiUrl;
+};
+
+const getDebugInfo = (context) => {
+  const requestUrl = new URL(context.request.url);
+  const env = context.env || {};
+  return {
+    enabled: env.PAGESPEED_DEBUG === 'true' || requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1',
+    env
+  };
+};
+
+const logPageSpeedError = (error) => {
+  console.error('PageSpeed API request failed', {
+    status: error.status ?? null,
+    statusText: error.statusText ?? '',
+    body: error.body ?? '',
+    apiUrl: error.apiUrl ? sanitizePageSpeedUrl(error.apiUrl) : '',
+    message: error.message ?? ''
+  });
+};
+
+const fetchPageSpeed = async (url, env) => {
+  const apiUrl = getPageSpeedUrl(url, env);
 
   try {
     const response = await fetchWithTimeout(apiUrl.href, {}, PAGESPEED_TIMEOUT_MS);
-    if (!response.ok) throw new Error(`PageSpeed API ${response.status}`);
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        statusText: response.statusText,
+        body: await response.text().catch(() => ''),
+        apiUrl: apiUrl.href,
+        message: `PageSpeed API ${response.status}`
+      };
+    }
     const data = await response.json();
     const lighthouse = data.lighthouseResult || {};
     const categories = lighthouse.categories || {};
@@ -201,8 +246,31 @@ const fetchPageSpeed = async (url, env) => {
         speedIndex: audits['speed-index']?.displayValue || '取得できませんでした'
       }
     };
-  } catch {
-    return { available: false, performance: null, accessibility: null, bestPractices: null, seo: null, metrics: null };
+  } catch (error) {
+    const normalizedError = {
+      status: error.status ?? null,
+      statusText: error.statusText ?? '',
+      body: error.body ?? '',
+      apiUrl: error.apiUrl ?? apiUrl.href,
+      message: error.name === 'AbortError' ? 'PageSpeed API timeout' : (error.message || 'PageSpeed API request failed')
+    };
+    logPageSpeedError(normalizedError);
+    return {
+      available: false,
+      performance: null,
+      accessibility: null,
+      bestPractices: null,
+      seo: null,
+      metrics: null,
+      error: {
+        message: PAGESPEED_ERROR_MESSAGE,
+        status: normalizedError.status,
+        statusText: normalizedError.statusText,
+        body: normalizedError.body,
+        apiUrl: sanitizePageSpeedUrl(normalizedError.apiUrl),
+        debugMessage: normalizedError.message
+      }
+    };
   }
 };
 
@@ -220,7 +288,7 @@ const buildImprovements = ({ checks, parsed, pageSpeed, contact }) => {
   return [...new Set(items)].slice(0, 5);
 };
 
-const buildResult = async ({ input, finalUrl, html, env }) => {
+const buildResult = async ({ input, finalUrl, html, env, debug }) => {
   const parsed = parseHtml(html, finalUrl);
   const bodyText = decodeEntities(stripTags(html));
   const [linkResult, pageSpeed] = await Promise.all([checkLinks(parsed.links), fetchPageSpeed(finalUrl, env)]);
@@ -235,9 +303,9 @@ const buildResult = async ({ input, finalUrl, html, env }) => {
   const mobileScore = mobileValues.length ? Math.round(mobileValues.reduce((sum, value) => sum + value, 0) / mobileValues.length) : null;
 
   const checks = [
-    makeCheck('performance', '表示速度', pageSpeed.performance, statusFromScore(pageSpeed.performance), pageSpeed.available ? `Performance ${pageSpeed.performance}点` : 'PageSpeed APIが失敗したため取得できませんでした。', pageSpeed.metrics ? [`FCP: ${pageSpeed.metrics.fcp}`, `LCP: ${pageSpeed.metrics.lcp}`, `CLS: ${pageSpeed.metrics.cls}`, `Speed Index: ${pageSpeed.metrics.speedIndex}`] : ['HTML解析結果は表示しています。'], 20),
-    makeCheck('mobile', 'モバイル表示', mobileScore, statusFromScore(mobileScore), mobileScore === null ? 'PageSpeed APIが失敗したため取得できませんでした。' : `Accessibility / Best Practices をもとに ${mobileScore}点`, pageSpeed.available ? [`Accessibility: ${pageSpeed.accessibility ?? '取得できませんでした'}`, `Best Practices: ${pageSpeed.bestPractices ?? '取得できませんでした'}`] : [], 15),
-    makeCheck('seo', 'SEO基本スコア', pageSpeed.seo, statusFromScore(pageSpeed.seo), pageSpeed.seo === null ? 'PageSpeed APIが失敗したため取得できませんでした。' : `SEO ${pageSpeed.seo}点`, [], 15),
+    makeCheck('performance', '表示速度', pageSpeed.performance, statusFromScore(pageSpeed.performance), pageSpeed.available ? `Performance ${pageSpeed.performance}点` : PAGESPEED_ERROR_MESSAGE, pageSpeed.metrics ? [`FCP: ${pageSpeed.metrics.fcp}`, `LCP: ${pageSpeed.metrics.lcp}`, `CLS: ${pageSpeed.metrics.cls}`, `Speed Index: ${pageSpeed.metrics.speedIndex}`] : ['HTML解析結果は表示しています。'], 20),
+    makeCheck('mobile', 'モバイル表示', mobileScore, statusFromScore(mobileScore), mobileScore === null ? PAGESPEED_ERROR_MESSAGE : `Accessibility / Best Practices をもとに ${mobileScore}点`, pageSpeed.available ? [`Accessibility: ${pageSpeed.accessibility ?? '取得できませんでした'}`, `Best Practices: ${pageSpeed.bestPractices ?? '取得できませんでした'}`] : [], 15),
+    makeCheck('seo', 'SEO基本スコア', pageSpeed.seo, statusFromScore(pageSpeed.seo), pageSpeed.seo === null ? PAGESPEED_ERROR_MESSAGE : `SEO ${pageSpeed.seo}点`, [], 15),
     makeCheck('titleDescription', 'title / description', Math.round((titleScore + descriptionScore) / 2), titleScore === 0 || descriptionScore === 0 ? 'improve' : titleScore < 100 || descriptionScore < 100 ? 'caution' : 'ok', `title ${parsed.title.length}文字 / description ${parsed.description.length}文字`, [`title: ${parsed.title || 'なし'}`, `description: ${parsed.description || 'なし'}`], 15),
     makeCheck('h1', 'h1', h1Score, h1Score === 100 ? 'ok' : h1Score === 60 ? 'caution' : 'improve', `h1は${parsed.h1Texts.length}個です。`, parsed.h1Texts.slice(0, 3).map((text) => `h1: ${text}`), 10),
     makeCheck('imageAlt', '画像alt', altScore, altScore >= 80 ? 'ok' : altScore >= 50 ? 'caution' : 'improve', `画像${parsed.imgTotal}件中、alt設定あり${parsed.imgWithAlt}件 / 未設定${parsed.imgMissingAlt}件`, [`alt設定率 ${altScore}%`], 10),
@@ -249,7 +317,7 @@ const buildResult = async ({ input, finalUrl, html, env }) => {
   const totalWeight = availableChecks.reduce((sum, check) => sum + check.weight, 0);
   const overallScore = totalWeight ? Math.round(availableChecks.reduce((sum, check) => sum + (check.score * check.weight), 0) / totalWeight) : 0;
 
-  return {
+  const result = {
     input,
     finalUrl,
     overallScore,
@@ -261,6 +329,12 @@ const buildResult = async ({ input, finalUrl, html, env }) => {
       improve: checks.filter((check) => check.status === 'improve').map((check) => check.label)
     }
   };
+
+  if (debug.enabled && pageSpeed.error) {
+    result.debug = { pageSpeed: pageSpeed.error };
+  }
+
+  return result;
 };
 
 export async function onRequestOptions() {
@@ -282,6 +356,7 @@ export async function onRequestPost(context) {
     return json({ message: '入力内容を確認できませんでした。もう一度お試しください。' }, 400);
   }
 
+  const debug = getDebugInfo(context);
   const validation = validateTargetUrl(body.url);
   if (validation.error) return json({ message: validation.error }, 400);
   const targetUrl = validation.url;
@@ -307,7 +382,8 @@ export async function onRequestPost(context) {
       },
       finalUrl: response.url || targetUrl.href,
       html,
-      env: context.env || {}
+      env: debug.env,
+      debug
     });
     return json(result);
   } catch (error) {

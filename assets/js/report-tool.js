@@ -19,8 +19,10 @@ const getFormData = () => ({
 
 const normalizeUrl = (value) => {
   try {
-    const url = new URL(value);
+    const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    const url = new URL(withProtocol);
     if (!['http:', 'https:'].includes(url.protocol)) return null;
+    if (url.protocol === 'http:') url.protocol = 'https:';
     return url.href;
   } catch {
     return null;
@@ -98,6 +100,10 @@ const renderResult = (payload) => {
   const { input, result } = payload;
   const shopName = input.shopName || '診断サイト';
   const score = result.overallScore;
+
+  if (result.debug?.pageSpeed) {
+    console.info('PageSpeed debug', result.debug.pageSpeed);
+  }
 
   document.querySelector('#result-shop-name').textContent = shopName;
   document.querySelector('#result-url').textContent = result.finalUrl || input.url;
