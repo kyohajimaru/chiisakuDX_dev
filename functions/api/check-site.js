@@ -2,7 +2,11 @@ const MAX_HTML_BYTES = 1_200_000;
 const MAX_LINK_CHECKS = 20;
 const FETCH_TIMEOUT_MS = 12000;
 const PAGESPEED_TIMEOUT_MS = 30000;
+const CACHE_TTL_SECONDS = 86400;
+const RATE_LIMIT_PER_DAY = 3;
 const PAGESPEED_ERROR_MESSAGE = 'PageSpeedの取得に失敗しました。サイト自体の問題ではなく、一時的なAPIエラーやタイムアウトの可能性があります。';
+const memoryCache = new Map();
+const memoryRateLimit = new Map();
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -53,6 +57,63 @@ const fetchWithTimeout = async (url, options = {}, timeout = FETCH_TIMEOUT_MS) =
   } finally {
     clear();
   }
+};
+
+const getCacheStore = (env) => env.WEB_CHECK_CACHE || env.CHECK_SITE_CACHE || env.SITE_CHECK_CACHE || null;
+const cacheKeyFor = (url) => `site-check:${encodeURIComponent(url)}`;
+const rateLimitKeyFor = (ip) => `rate:${new Date().toISOString().slice(0, 10)}:${ip}`;
+
+const readCache = async (env, url) => {
+  const key = cacheKeyFor(url);
+  const store = getCacheStore(env);
+  if (store) {
+    const cached = await store.get(key, 'json');
+    if (cached) return cached;
+  }
+
+  const cached = memoryCache.get(key);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return cached.value;
+};
+
+const writeCache = async (env, url, result) => {
+  const key = cacheKeyFor(url);
+  const { debug, ...cacheableResult } = result;
+  const value = { ...cacheableResult, cache: { hit: false, cachedAt: new Date().toISOString() } };
+  const store = getCacheStore(env);
+  if (store) {
+    await store.put(key, JSON.stringify(value), { expirationTtl: CACHE_TTL_SECONDS });
+  } else {
+    memoryCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_SECONDS * 1000 });
+  }
+  return value;
+};
+
+const getClientIp = (request) => (
+  request.headers.get('cf-connecting-ip')
+  || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  || 'unknown'
+);
+
+const checkRateLimit = async (env, ip) => {
+  const key = rateLimitKeyFor(ip);
+  const store = getCacheStore(env);
+  if (store) {
+    const current = Number(await store.get(key)) || 0;
+    if (current >= RATE_LIMIT_PER_DAY) return false;
+    await store.put(key, String(current + 1), { expirationTtl: CACHE_TTL_SECONDS });
+    return true;
+  }
+
+  const cached = memoryRateLimit.get(key);
+  const current = cached && cached.expiresAt > Date.now() ? cached.count : 0;
+  if (current >= RATE_LIMIT_PER_DAY) return false;
+  memoryRateLimit.set(key, { count: current + 1, expiresAt: Date.now() + CACHE_TTL_SECONDS * 1000 });
+  return true;
 };
 
 const decodeHtml = async (response) => {
@@ -211,21 +272,36 @@ const logPageSpeedError = (error) => {
   });
 };
 
+const isPageSpeedRateLimitError = (error) => {
+  const body = String(error.body || '');
+  return error.status === 429 || body.includes('RESOURCE_EXHAUSTED') || body.includes('RATE_LIMIT_EXCEEDED');
+};
+
+const requestPageSpeed = async (apiUrl) => {
+  const response = await fetchWithTimeout(apiUrl.href, {}, PAGESPEED_TIMEOUT_MS);
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      statusText: response.statusText,
+      body: await response.text().catch(() => ''),
+      apiUrl: apiUrl.href,
+      message: `PageSpeed API ${response.status}`
+    };
+  }
+  return response.json();
+};
+
 const fetchPageSpeed = async (url, env) => {
   const apiUrl = getPageSpeedUrl(url, env);
 
   try {
-    const response = await fetchWithTimeout(apiUrl.href, {}, PAGESPEED_TIMEOUT_MS);
-    if (!response.ok) {
-      throw {
-        status: response.status,
-        statusText: response.statusText,
-        body: await response.text().catch(() => ''),
-        apiUrl: apiUrl.href,
-        message: `PageSpeed API ${response.status}`
-      };
+    let data;
+    try {
+      data = await requestPageSpeed(apiUrl);
+    } catch (error) {
+      if (isPageSpeedRateLimitError(error)) throw error;
+      data = await requestPageSpeed(apiUrl);
     }
-    const data = await response.json();
     const lighthouse = data.lighthouseResult || {};
     const categories = lighthouse.categories || {};
     const audits = lighthouse.audits || {};
@@ -360,6 +436,26 @@ export async function onRequestPost(context) {
   const validation = validateTargetUrl(body.url);
   if (validation.error) return json({ message: validation.error }, 400);
   const targetUrl = validation.url;
+  const env = debug.env;
+  const cachedResult = await readCache(env, targetUrl.href);
+  if (cachedResult) {
+    const { debug: cachedDebug, ...safeCachedResult } = cachedResult;
+    return json({
+      ...safeCachedResult,
+      input: {
+        ...(safeCachedResult.input || {}),
+        url: targetUrl.href,
+        shopName: String(body.shopName || safeCachedResult.input?.shopName || '').trim(),
+        industry: String(body.industry || safeCachedResult.input?.industry || '').trim()
+      },
+      cache: { ...(safeCachedResult.cache || {}), hit: true }
+    });
+  }
+
+  const allowed = await checkRateLimit(env, getClientIp(context.request));
+  if (!allowed) {
+    return json({ message: '無料診断の利用回数が上限に達しました。時間をおいて再度お試しください。' }, 429);
+  }
 
   try {
     const response = await fetchWithTimeout(targetUrl.href, {
@@ -382,10 +478,10 @@ export async function onRequestPost(context) {
       },
       finalUrl: response.url || targetUrl.href,
       html,
-      env: debug.env,
+      env,
       debug
     });
-    return json(result);
+    return json(await writeCache(env, targetUrl.href, result));
   } catch (error) {
     if (error.name === 'AbortError') {
       return json({ message: '診断中にタイムアウトしました。少し時間をおいて、もう一度お試しください。' }, 504);

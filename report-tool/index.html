@@ -66,6 +66,7 @@
             <p class="section-kicker">FREE CHECK</p>
             <h2>ホームページURLを入力してください</h2>
             <p class="tool-lead">診断できるのは、公開されている http / https のURLです。localhost や社内ネットワークのURLは診断できません。</p>
+            <p class="tool-limit-note">無料診断は、1日あたりの利用回数に上限があります。アクセス状況や外部APIの制限により、表示速度など一部の項目が取得できない場合があります。</p>
             <div class="form-grid auto-form-grid">
               <label class="full-field">ホームページURL <small>必須</small><input type="url" name="homepageUrl" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
               <label>お店の名前 <small>任意</small><input type="text" name="shopName" autocomplete="organization" placeholder="例：ちいさな美容室"></label>
@@ -112,6 +113,7 @@
               <p class="section-kicker">WEB CHECK REPORT</p>
               <h2><span id="result-shop-name">診断サイト</span>の無料診断結果</h2>
               <p class="target-url" id="result-url"></p>
+              <p class="cache-note" id="cache-note" hidden>前回の診断結果を表示しています</p>
             </div>
             <div class="result-score" aria-label="総合スコア"><b id="overall-score">0</b><small>/ 100</small></div>
           </div>

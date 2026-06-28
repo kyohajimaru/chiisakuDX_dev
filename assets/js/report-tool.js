@@ -107,6 +107,8 @@ const renderResult = (payload) => {
 
   document.querySelector('#result-shop-name').textContent = shopName;
   document.querySelector('#result-url').textContent = result.finalUrl || input.url;
+  const cacheNote = document.querySelector('#cache-note');
+  if (cacheNote) cacheNote.hidden = !result.cache?.hit;
   document.querySelector('#overall-score').textContent = score;
   document.querySelector('.result-score').style.setProperty('--score-angle', `${score * 3.6}deg`);
   document.querySelector('#status-message').textContent = getStatusMessage(score);
