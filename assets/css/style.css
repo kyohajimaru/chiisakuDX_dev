@@ -14,6 +14,77 @@
 @media(max-width:560px){.container{width:calc(100% - 36px)}.pc-only{display:none}.sp-only{display:block}.logo-text{font-size:22px}.section{padding:78px 0}.hero-grid{padding-top:48px}.eyebrow{font-size:10px}.hero h1{font-size:32px;line-height:1.5}.hero-lead{font-size:14px;text-align:left}.button-row{flex-direction:column}.button{width:100%}.hero-notes{gap:8px;flex-wrap:wrap}.hero-notes li{font-size:10px}.report-card{padding:18px}.report-title{display:block}.report-title strong{display:block;margin-top:8px}.tag-a{left:-15px;top:90px}.tag-b{right:-10px;bottom:35px}.section-heading{margin-bottom:35px}.section-heading h2,.about h2,.contact h2{font-size:28px}.about>.container>p:not(.section-kicker){text-align:left;font-size:14px}.concept-message{text-align:center!important;padding:22px 17px}.concept-message strong{font-size:18px}.worry-grid{grid-template-columns:1fr 1fr;gap:9px}.worry-grid article{padding:28px 8px 20px}.worry-grid p{font-size:12px}.service-copy,.check-panel{padding:34px 25px}.service-copy h3{font-size:26px}.deliverables{margin:12px 0 0;padding:23px}.deliverables>div{grid-template-columns:1fr}.option-grid{grid-template-columns:1fr;margin-top:35px}.option-grid article{padding:30px 24px}.support-list{grid-template-columns:1fr}.support-list span{min-height:62px}.price-card{padding:34px 24px}.flow-list li{grid-template-columns:65px 1fr}.flow-list li>span{width:52px;height:47px}.flow-list li:not(:last-child):before{left:25px;top:53px}.flow-list h3{font-size:15px}.contact{padding:78px 0}.contact h2 br{display:none}.contact p:not(.section-kicker){text-align:left}.footer-inner{display:block}.footer-inner nav{margin-top:30px}.copyright{margin-top:30px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}}
 
+/* ===== DX REDESIGN ADDITIONS ===== */
+
+/* Before/After hero card */
+.ba-card{background:rgba(255,255,255,.94);border:1px solid rgba(162,214,203,.7);border-radius:28px;padding:26px;box-shadow:0 30px 70px rgba(37,116,126,.18);transform:rotate(1deg)}
+.ba-card-head{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:13px;margin-bottom:14px}
+.ba-card-label{font-size:9px;letter-spacing:.15em;color:#8aa1a8}
+.ba-case{font-size:11px;color:#718990;display:block;margin-bottom:10px}
+.ba-cols{display:grid;grid-template-columns:1fr 22px 1fr;gap:6px;align-items:start}
+.ba-col{background:#f7faf9;border-radius:12px;padding:12px}
+.ba-col.after{background:#edfaf3}
+.ba-tag{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;margin-bottom:7px;color:#8aa1a8}
+.ba-col.after .ba-tag{color:#279a83}
+.ba-list{list-style:none;padding:0;margin:0}
+.ba-list li{font-size:11px;color:var(--navy);padding:3px 0;border-bottom:1px solid rgba(220,235,231,.5)}
+.ba-list li:last-child{border-bottom:none}
+.ba-arr{display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--green);font-weight:700;padding-top:26px}
+.ba-result{margin-top:12px;background:var(--pale);border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;color:#26634f}
+.ba-result span{color:var(--green);margin-right:5px}
+
+/* Worries bridge */
+.worries-bridge{text-align:center;margin-top:44px;padding:28px;background:linear-gradient(100deg,#f0faf6,#eff8fb);border-radius:18px}
+.worries-bridge strong{font-family:"M PLUS Rounded 1c",sans-serif;font-size:20px;color:#258d75;display:block;margin-bottom:8px}
+.worries-bridge p{font-size:13px;color:var(--muted);margin:0}
+
+/* Before/After examples section */
+.ba-example-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ba-example{background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 12px 36px rgba(27,95,104,.06)}
+.ba-example-title{font-family:"M PLUS Rounded 1c",sans-serif;font-size:16px;color:var(--navy);margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.ba-example-body{display:grid;grid-template-columns:1fr 20px 1fr;gap:6px;align-items:start}
+.ba-ex-col{border-radius:10px;padding:12px}
+.ba-ex-col.before{background:#f5f5f5}
+.ba-ex-col.after{background:#edfaf3}
+.ba-ex-label{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;margin-bottom:6px;color:#8aa1a8}
+.ba-ex-col.after .ba-ex-label{color:#279a83}
+.ba-ex-col ul{list-style:none;padding:0;margin:0}
+.ba-ex-col li{font-size:11px;color:#405060;padding:2px 0;line-height:1.7}
+.ba-ex-arr{display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--green);font-weight:700;padding-top:24px}
+
+/* Concept section */
+.concept-section-box{margin-top:32px;background:linear-gradient(100deg,#f0faf6,#eff8fb);border-radius:20px;padding:36px;text-align:center}
+.concept-quote{font-size:15px;color:#566f7a;line-height:2.4;margin:0 0 18px}
+.concept-tagline{font-family:"M PLUS Rounded 1c",sans-serif;font-size:18px;color:#258d75;font-weight:700;margin:0}
+
+/* Price note small */
+.price-note-small{text-align:center;font-size:11px;color:#86989f;margin-top:12px}
+
+/* Section note */
+.section-note{text-align:center;font-size:12px;color:#789096;margin-top:-24px;margin-bottom:32px}
+
+/* Section note variant — appears below a card (not a grid) */
+.section-note-below{margin-top:20px;margin-bottom:0}
+
+/* Concept CTA button row top margin */
+.concept-cta{margin-top:32px}
+
+/* Icon text size overrides (replaces inline styles) */
+.icon-text-lg{font-size:18px;letter-spacing:0}
+.icon-text-sm{font-size:14px}
+
+/* Concept standalone heading (replaces inline style on service page) */
+.concept-h2{font-family:"M PLUS Rounded 1c",sans-serif;font-size:clamp(29px,3.2vw,42px);line-height:1.55;color:var(--navy);margin:0 0 16px}
+
+/* Single before/after example card (top page) */
+.ba-example-single{max-width:520px;margin:0 auto}
+
+/* 2-column before/after grid (service page — 4 examples) */
+.ba-example-grid-2col{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+
+@media(max-width:850px){.ba-example-grid{grid-template-columns:1fr}.ba-example-grid-2col{grid-template-columns:1fr}}
+@media(max-width:560px){.ba-card{padding:18px}.ba-cols{grid-template-columns:1fr;gap:4px}.ba-arr{padding-top:0;padding:4px 0;transform:rotate(90deg)}.ba-example{padding:20px 16px}.ba-example-body{grid-template-columns:1fr;gap:8px}.ba-ex-arr{padding-top:0;font-size:18px}.worries-bridge{padding:22px 18px}.worries-bridge strong{font-size:17px}.concept-section-box{padding:24px 18px}.concept-quote{font-size:14px}}
+
 /* Image logo */
 .logo-image{display:block;width:auto;height:56px;object-fit:contain}
 .footer-logo-frame{display:inline-flex;align-items:center;background:#fff;border-radius:12px;padding:3px 12px}
