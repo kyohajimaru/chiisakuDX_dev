@@ -63,6 +63,35 @@
 /* Section note */
 .section-note{text-align:center;font-size:12px;color:#789096;margin-top:-24px;margin-bottom:32px}
 
+/* ===== CONTACT FORM ===== */
+.form-wrap{max-width:640px;margin:0 auto}
+.form-intro{background:linear-gradient(100deg,#f0faf6,#eff8fb);border-radius:18px;padding:24px 28px;margin-bottom:36px}
+.form-intro p{font-size:14px;color:#566f7a;line-height:2.1;margin:0}
+.contact-form{display:grid;gap:22px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.form-required{background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.form-optional{background:#e5eeeb;color:#6d838c;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.form-input,.form-select,.form-textarea{width:100%;padding:13px 16px;border:1.5px solid #d4e5e0;border-radius:12px;font-size:15px;font-family:"Noto Sans JP",sans-serif;color:var(--text);background:#fff;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none;box-sizing:border-box}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(54,181,122,.13)}
+.form-input::placeholder,.form-textarea::placeholder{color:#b0c0c7}
+.form-input.is-error,.form-select.is-error,.form-textarea.is-error{border-color:#e05252;background:#fff9f9}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236d838c' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:44px;cursor:pointer}
+.form-textarea{resize:vertical;min-height:120px;line-height:1.85}
+.form-error-text{font-size:12px;color:#e05252;font-weight:600;min-height:16px;display:block}
+.form-divider{border:none;border-top:1px dashed #d4e5e0;margin:4px 0}
+.form-error-global{background:#fff3f3;border:1px solid #f5c6c6;border-radius:12px;padding:14px 18px;font-size:13px;color:#c0392b;line-height:1.8}
+.form-submit{width:100%;margin-top:4px;font-size:15px;min-height:58px;letter-spacing:.03em}
+.form-submit:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+.form-footer-note{text-align:center;font-size:12px;color:#789096;margin:4px 0 0}
+.form-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+/* Thanks page */
+.thanks-wrap{text-align:center;padding:80px 0}
+.thanks-icon{width:72px;height:72px;background:linear-gradient(130deg,#dcf5eb,#e0f2f8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 28px}
+.thanks-wrap h1{font-family:"M PLUS Rounded 1c",sans-serif;font-size:clamp(26px,3vw,36px);color:var(--navy);margin:0 0 16px}
+.thanks-wrap p{font-size:15px;color:#566f7a;line-height:2;margin:0 0 36px}
+@media(max-width:560px){.form-intro{padding:18px 20px}.form-input,.form-select,.form-textarea{font-size:16px;padding:12px 14px}.form-submit{min-height:52px}.thanks-wrap{padding:60px 0}}
+
 /* Section note variant — appears below a card (not a grid) */
 .section-note-below{margin-top:20px;margin-bottom:0}
 
