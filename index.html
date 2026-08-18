@@ -24,7 +24,7 @@
       <a class="logo" href="/" aria-label="ちいさくDX トップへ"><img class="logo-image" src="assets/img/logo-transparent.png" alt="ちいさくDX"></a>
       <button class="menu-button" type="button" aria-controls="global-nav" aria-expanded="false"><span></span><span></span><span></span><span class="sr-only">メニューを開く</span></button>
       <nav class="global-nav" id="global-nav" aria-label="メインメニュー">
-        <a href="service/">サービス</a><a href="price/">料金</a><a href="flow/">ご利用の流れ</a><a href="report/">Web診断</a><a class="nav-contact" href="contact/">相談する</a>
+        <a href="service/">サービス</a><a href="service/kanribu-cloud/">管理部クラウド</a><a href="price/">料金</a><a href="flow/">ご利用の流れ</a><a href="report/">Web診断</a><a class="nav-contact" href="contact/">相談する</a>
       </nav>
     </div>
   </header>
@@ -36,13 +36,13 @@
       <div class="container hero-grid">
         <div class="hero-copy">
           <p class="eyebrow"><span></span>小さなお店・会社・個人事業主の方へ</p>
-          <h1><span class="hero-h1-accent">その手書き、</span><br><strong>そろそろラクに<br>しませんか？</strong></h1>
-          <p class="hero-lead">紙・手書き・Excel・毎日の転記作業など、今ある小さな手間からデジタル化します。大きなシステム導入は不要です。</p>
+          <h1>小さい会社の<br><strong>面倒な仕事を、<br>もっと少なく。</strong></h1>
+          <p class="hero-lead">業務の自動化から、税務・労務・ITの継続支援まで。会社にちょうどいい仕組みを、一緒につくります。</p>
           <div class="button-row">
             <a class="button button-primary" href="contact/">業務のお悩みを無料相談する<span aria-hidden="true">→</span></a>
             <a class="button button-secondary" href="service/">サービス内容を見る</a>
           </div>
-          <ul class="hero-notes" aria-label="サービスの特徴"><li>初回相談 無料</li><li>小さなところから</li><li>ITが苦手でも大丈夫</li></ul>
+          <ul class="hero-notes" aria-label="サービスの特徴"><li>初回相談 無料</li><li>業務DX・自動化</li><li>管理部クラウド</li></ul>
         </div>
         <div class="hero-visual" aria-label="業務改善のイメージ">
           <div class="ba-card">
@@ -106,13 +106,20 @@
     <!-- SERVICE -->
     <section class="compact-section service">
       <div class="container">
-        <div class="section-heading center"><h2>業務の「面倒な手作業」を、ちいさくDX</h2><p>紙・手書き・Excel・毎日の繰り返し作業まで、必要なところから対応します。</p></div>
-        <div class="link-card-grid">
-          <article class="link-card"><b>01</b><h3>紙・手書き業務のデジタル化</h3><p>紙やノートで管理している情報を、スマホやPCから簡単に入力・確認できるようにします。</p><a class="text-link" href="service/">詳しく見る <span>→</span></a></article>
-          <article class="link-card"><b>02</b><h3>Excel・集計作業の自動化</h3><p>毎回行っている入力・転記・集計などをできるだけ自動化します。</p><a class="text-link" href="service/">詳しく見る <span>→</span></a></article>
-          <article class="link-card"><b>03</b><h3>小さな業務ツールの作成</h3><p>その会社の業務に合わせたシンプルなツールを作成します。既製品では使いにくい場合に。</p><a class="text-link" href="service/">詳しく見る <span>→</span></a></article>
-          <article class="link-card"><b>04</b><h3>AI・自動化の活用</h3><p>生成AIや自動化ツールを使い、繰り返し作業や情報整理を効率化します。</p><a class="text-link" href="service/">詳しく見る <span>→</span></a></article>
-          <article class="link-card"><b>05</b><h3>Web・予約・問い合わせの改善</h3><p>Webサイト、LINE、予約フォームなどの使いにくい部分を改善します。</p><a class="text-link" href="service/">詳しく見る <span>→</span></a></article>
+        <div class="section-heading center"><h2>2つの柱でサポートします</h2><p>「手作業を減らす」だけでなく、継続的なバックオフィス支援まで。</p></div>
+        <div class="pillar-cards">
+          <article class="pillar-card pillar-accent">
+            <span class="pillar-badge badge-dx">業務DX・自動化</span>
+            <h3>毎日の「面倒」を、<br>仕組みに変える。</h3>
+            <p>Excelへの転記、問い合わせ管理、請求処理、通知など、会社ごとの手作業に合わせて自動化します。紙・手書き・Excel・定型業務まで、小さなところから対応します。</p>
+            <div class="button-row"><a class="button button-primary" href="service/">DXの詳細を見る<span aria-hidden="true">→</span></a></div>
+          </article>
+          <article class="pillar-card">
+            <span class="pillar-badge badge-kanribu">管理部クラウド</span>
+            <h3>管理部を1人採用する前に。<br>税務・労務・ITを、月額で。</h3>
+            <p>専任の管理部を置くほどではない会社向けに、税理士・社労士・ITエンジニアが外部管理部として継続的にサポートします。</p>
+            <div class="button-row"><a class="button button-primary" href="service/kanribu-cloud/">管理部クラウドを見る<span aria-hidden="true">→</span></a></div>
+          </article>
         </div>
       </div>
     </section>
@@ -209,7 +216,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-inner"><div><a class="logo footer-logo" href="/"><span class="footer-logo-frame"><img class="logo-image" src="assets/img/logo-transparent.png" alt="ちいさくDX"></span></a><p>小さなお店・会社の手作業を、ちいさくDXする。</p></div><nav aria-label="フッターメニュー"><a href="service/">サービス</a><a href="price/">料金</a><a href="flow/">ご利用の流れ</a><a href="report/">Web診断</a><a href="contact/">相談する</a></nav></div>
+    <div class="container footer-inner"><div><a class="logo footer-logo" href="/"><span class="footer-logo-frame"><img class="logo-image" src="assets/img/logo-transparent.png" alt="ちいさくDX"></span></a><p>小さなお店・会社の手作業を、ちいさくDXする。</p></div><nav aria-label="フッターメニュー"><a href="service/">サービス</a><a href="service/kanribu-cloud/">管理部クラウド</a><a href="price/">料金</a><a href="flow/">ご利用の流れ</a><a href="report/">Web診断</a><a href="contact/">相談する</a></nav></div>
     <div class="container copyright"><span>© 2026 ちいさくDX</span><a href="#top">ページ上部へ ↑</a></div>
   </footer>
 </body>
